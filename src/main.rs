@@ -9,6 +9,7 @@ mod block_chain;
 pub mod blocks;
 mod shared;
 pub mod transactions;
+pub mod utxo_map;
 
 use ed25519_dalek::{SecretKey, Signer, SigningKey, Verifier, VerifyingKey};
 

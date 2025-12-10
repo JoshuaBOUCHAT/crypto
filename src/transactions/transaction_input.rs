@@ -21,4 +21,10 @@ impl Input {
         hasher.update(&self.tx_id);
         hasher.update(&self.tx_output_idx.to_be_bytes());
     }
+    pub fn get_tx_id(&self) -> &Hash {
+        &self.tx_id
+    }
+    pub fn get_tx_idx(&self) -> usize {
+        self.tx_output_idx
+    }
 }
