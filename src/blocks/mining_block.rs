@@ -1,7 +1,8 @@
 use sha2::{Digest, Sha256};
 
 use crate::{
-    blocks::block::Block,
+    block_chain::BlockChain,
+    blocks::{self, block::Block},
     shared::{Hash, count_leading_zeros, get_now_unix},
 };
 
@@ -32,6 +33,12 @@ impl MiningBlock {
     pub fn get_difficulty(&self) -> u32 {
         self.difficulty
     }
+    pub fn get_version(&self) -> u32 {
+        self.version
+    }
+    pub fn get_previous_hash(&self) -> &Hash {
+        &self.previous_hash
+    }
     pub fn genesis() -> Self {
         Self {
             version: 0,
@@ -52,5 +59,15 @@ impl MiningBlock {
             }
         }
         None
+    }
+    pub fn from_black_chain(chain: &BlockChain, merkel_root: Hash) -> Self {
+        Self {
+            version: chain.get_version(),
+            difficulty: chain.get_difficulty(),
+            previous_hash: chain.get_previous_hash().clone(),
+            merkel_root,
+            nonce: 0,
+            timestamp: get_now_unix(),
+        }
     }
 }

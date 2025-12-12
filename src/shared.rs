@@ -27,3 +27,6 @@ pub fn count_leading_zeros(hash: &[u8; 32]) -> u32 {
 
     count
 }
+pub fn meet_difficulty(hash: &Hash, difficulty: u32) -> bool {
+    count_leading_zeros(hash) >= difficulty
+}

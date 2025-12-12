@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use sha2::{Digest, Sha256};
+
 use crate::{
     shared::Hash,
     transactions::{
@@ -20,6 +22,6 @@ impl UTXOMap {
         todo!()
     }
     pub fn try_find_matching_output(&self, input: &Input) -> Option<&Output> {
-        Some(&self.utxos.get(input.get_tx_id())?[input.get_tx_idx()])
+        self.utxos.get(input.get_tx_id())?.get(input.get_tx_idx())
     }
 }

@@ -2,6 +2,7 @@ use ed25519_dalek::{Signature, SigningKey, VerifyingKey, ed25519::signature::Sig
 use sha2::{Digest, Sha256};
 
 use crate::{
+    block_chain::BlockChain,
     shared::Hash,
     transactions::{transaction_input::Input, transaction_output::Output},
     utxo_map::UTXOMap,
@@ -36,6 +37,13 @@ impl RawTransaction {
     pub fn get_pubkey(&self) -> &VerifyingKey {
         &self.pubkey
     }
+    fn coinbase(pubkey: VerifyingKey, amount: u64) -> Self {
+        Self {
+            inputs: vec![],
+            outputs: vec![Output::new(pubkey, amount)],
+            pubkey,
+        }
+    }
 }
 
 pub struct SignedTransaction {
@@ -69,6 +77,19 @@ impl SignedTransaction {
     fn get_pubkey(&self) -> &VerifyingKey {
         self.raw.get_pubkey()
     }
+    fn check_signature(&self) -> Result<(), TransactionValidationError> {
+        if self.raw.hash() != self.hash {
+            return Err(TransactionValidationError::HashIncorrect);
+        }
+        match self.get_pubkey().verify_strict(&self.hash, &self.signature) {
+            Ok(()) => Ok(()),
+            Err(_) => Err(TransactionValidationError::SignatureIncorrect),
+        }
+    }
+    fn coinbase(sign_key: &mut SigningKey, amount: u64) -> Self {
+        let raw = RawTransaction::coinbase(sign_key.verifying_key(), amount);
+        Self::from_raw(raw, sign_key)
+    }
 }
 
 #[repr(transparent)]
@@ -77,6 +98,8 @@ pub struct ValidatedTransaction {
 }
 
 pub enum TransactionValidationError {
+    SignatureIncorrect,
+    HashIncorrect,
     InsufficientInput,
     InsufficientOutput,
     InputInvalid,
@@ -99,6 +122,7 @@ impl ValidatedTransaction {
             .map(|output| output.get_amount())
             .sum();
         Self::check_balance(total_input, total_output)?;
+        signed_transaction.check_signature()?;
 
         Ok(Self {
             transaction: signed_transaction,
@@ -131,5 +155,18 @@ impl ValidatedTransaction {
             Ordering::Less => Err(TransactionValidationError::InsufficientInput),
             Ordering::Greater => Err(TransactionValidationError::InsufficientOutput),
         }
+    }
+    pub fn get_hash(&self) -> &Hash {
+        self.transaction.get_hash()
+    }
+    pub fn get_coin_base(block_chain: &BlockChain, sign_key: &mut SigningKey) -> Self {
+        let amount = block_chain.get_coin_base_amount();
+
+        Self {
+            transaction: SignedTransaction::coinbase(sign_key, amount),
+        }
+    }
+    pub fn inputs(&self) -> &[Input] {
+        self.transaction.inputs()
     }
 }
