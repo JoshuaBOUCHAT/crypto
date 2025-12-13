@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub struct UTXOMap {
-    utxos: HashMap<Hash, Vec<Output>>,
+    utxos: HashMap<Input, Output>,
 }
 
 impl UTXOMap {
@@ -19,24 +19,22 @@ impl UTXOMap {
             utxos: HashMap::new(),
         }
     }
-    pub fn update_transaction(
-        &mut self,
-        transaction: &ValidatedTransaction,
-    ) -> Result<(), UTXOUpdateError> {
-        for input in transaction.inputs() {
-            self.remove_utxo(input);
-        }
+    pub fn update_transaction(&mut self, transaction: &ValidatedTransaction) {
+        self.remove_utxos(transaction.inputs());
+        self.add_utxos(transaction.outputs(), transaction.get_hash());
     }
     pub fn try_find_matching_output(&self, input: &Input) -> Option<&Output> {
-        self.utxos.get(input.get_tx_id())?.get(input.get_tx_idx())
+        self.utxos.get(input)
     }
-    fn remove_utxo(&mut self, input: &Input) {
-        self.utxos
-            .get_mut(input.get_tx_id())
-            .expect("try to spend non existent uxto")
-            .swap_remove(input.get_tx_idx());
+    fn remove_utxos(&mut self, inputs: &[Input]) {
+        for input in inputs {
+            self.utxos.remove(input);
+        }
     }
-    fn add_utxo(&mut self, output: Output,transaction_id:&Hash) {
-        if let S
+    fn add_utxos(&mut self, outputs: &[Output], tx_id: &Hash) {
+        for (tx_output_idx, output) in outputs.iter().enumerate() {
+            let utxo_key = Input::new(tx_id.clone(), tx_output_idx);
+            self.utxos.insert(utxo_key, output.clone());
+        }
     }
 }

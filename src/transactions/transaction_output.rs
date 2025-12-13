@@ -1,6 +1,7 @@
 use ed25519_dalek::VerifyingKey;
 use sha2::{Sha256, digest::Update};
 
+#[derive(Clone)]
 pub struct Output {
     pubkey: VerifyingKey,
     amount: u64,

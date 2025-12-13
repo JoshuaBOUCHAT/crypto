@@ -3,7 +3,9 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use rand::rngs::OsRng;
 use sha2::{Digest, Sha256};
 
-use crate::{block_chain::BlockChain, shared::Hash};
+use crate::{
+    block_chain::BlockChain, shared::Hash, transactions::transaction::ValidatedTransaction,
+};
 
 mod block_chain;
 pub mod blocks;
@@ -15,8 +17,15 @@ use ed25519_dalek::{SecretKey, Signer, SigningKey, Verifier, VerifyingKey};
 
 fn main() {
     let mut rng = OsRng {};
-    let sign_key = SigningKey::generate(&mut rng);
-    sign_key.verifying_key();
-    let message = "Salut";
-    let a = sign_key.sign(message.as_bytes());
+    let mut sign_key = SigningKey::generate(&mut rng);
+    let mut block_chain = BlockChain::new();
+    let coin_base = ValidatedTransaction::get_coin_base(&block_chain, &mut sign_key);
+    let transactions = [coin_base];
+    let mut mining_block = block_chain.get_mining_block(&transactions);
+    if let Some(mined_block) = mining_block.mine() {
+        block_chain.update(mined_block);
+        println!("Trop bien t'es riche")
+    } else {
+        println!("truc")
+    }
 }

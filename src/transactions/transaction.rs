@@ -169,4 +169,7 @@ impl ValidatedTransaction {
     pub fn inputs(&self) -> &[Input] {
         self.transaction.inputs()
     }
+    pub fn outputs(&self) -> &[Output] {
+        self.transaction.outputs()
+    }
 }

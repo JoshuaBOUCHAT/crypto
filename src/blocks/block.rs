@@ -1,9 +1,9 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use crate::{
     block_chain::BlockChain,
     blocks::mining_block::MiningBlock,
-    shared::{Hash, count_leading_zeros, meet_difficulty},
+    shared::{Hash, meet_difficulty},
     transactions::transaction::{
         SignedTransaction, TransactionValidationError, ValidatedTransaction,
     },
@@ -24,7 +24,7 @@ pub struct Block {
 impl Block {
     pub fn try_new(mining_block: &MiningBlock) -> Option<Self> {
         let hash = mining_block.hash();
-        if count_leading_zeros(&hash) >= mining_block.get_difficulty() {
+        if meet_difficulty(&hash, mining_block.get_difficulty()) {
             Some(Self {
                 data: mining_block.clone(),
                 hash,
@@ -50,9 +50,9 @@ impl Block {
 
         chain.check_compatibility(&untrusted_block.data)?;
 
-        let utxo = chain.get_utxo();
+        let utxo = chain.get_utxos();
         let validated_transactions =
-            Self::validate_untrusted_transaction(untrusted_block.transactions, utxo)?;
+            validate_untrusted_transactions(untrusted_block.transactions, utxo)?;
 
         let new_block = Self {
             data: untrusted_block.data,
@@ -61,33 +61,44 @@ impl Block {
         };
         Ok(new_block)
     }
-    fn validate_untrusted_transaction(
-        untrusted_signed_transaction: Vec<SignedTransaction>,
-        utxo: &UTXOMap,
-    ) -> Result<Vec<ValidatedTransaction>, BlockValidationError> {
-        let mut spent_map: HashSet<(Hash, usize)> = HashSet::new();
-        let mut validated_transactions = Vec::with_capacity(untrusted_signed_transaction.len());
-        for untrused_transaction in untrusted_signed_transaction {
-            let is_input_already_spent = untrused_transaction
-                .inputs()
-                .iter()
-                .any(|input| spent_map.contains(&(*input.get_tx_id(), input.get_tx_idx())));
-            if is_input_already_spent {
-                return Err(BlockValidationError::UTXOSpentMultipleTime);
-            }
-            match ValidatedTransaction::validate(untrused_transaction, utxo) {
-                Ok(valid_transaction) => {
-                    for input in valid_transaction.inputs() {
-                        spent_map.insert((input.get_tx_id().clone(), input.get_tx_idx()));
-                    }
-                    validated_transactions.push(valid_transaction);
-                }
-                Err(err) => return Err(BlockValidationError::TransactionValidationError(err)),
-            }
-        }
-        Ok(validated_transactions)
+
+    pub fn get_transactions(&self) -> &[ValidatedTransaction] {
+        &self.transactions
     }
 }
+
+fn validate_untrusted_transactions(
+    untrusted_signed_transactions: Vec<SignedTransaction>,
+    utxos: &UTXOMap,
+) -> Result<Vec<ValidatedTransaction>, BlockValidationError> {
+    let mut spent_map: HashSet<(Hash, usize)> = HashSet::new();
+    untrusted_signed_transactions
+        .into_iter()
+        .map(|tx| validate_untrusted_transaction(utxos, &mut spent_map, tx))
+        .collect::<Result<Vec<ValidatedTransaction>, BlockValidationError>>()
+}
+
+fn validate_untrusted_transaction(
+    utxos: &UTXOMap,
+    spent_map: &mut HashSet<(Hash, usize)>,
+    untrusted_transaction: SignedTransaction,
+) -> Result<ValidatedTransaction, BlockValidationError> {
+    let is_input_already_spent = untrusted_transaction
+        .inputs()
+        .iter()
+        .any(|input| spent_map.contains(&(*input.get_tx_id(), input.get_tx_idx())));
+    if is_input_already_spent {
+        return Err(BlockValidationError::UTXOSpentMultipleTime);
+    }
+
+    let valid_transaction = ValidatedTransaction::validate(untrusted_transaction, utxos)
+        .map_err(|err| BlockValidationError::TransactionValidationError(err))?;
+    for input in valid_transaction.inputs() {
+        spent_map.insert((input.get_tx_id().clone(), input.get_tx_idx()));
+    }
+    Ok(valid_transaction)
+}
+
 pub enum BlockValidationError {
     DifficultyTooLow,
     VersionTooLow,
