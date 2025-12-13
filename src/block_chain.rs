@@ -70,4 +70,5 @@ impl BlockChain {
     pub fn get_utxo(&self) -> &UTXOMap {
         &self.utxo
     }
+    pub fn update(&mut self, block: Block) {}
 }
