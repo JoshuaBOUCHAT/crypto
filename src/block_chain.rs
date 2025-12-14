@@ -1,5 +1,3 @@
-use ed25519_dalek::SigningKey;
-
 use crate::{
     blocks::{
         block::{Block, BlockValidationError},

@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use sha2::{Digest, Sha256};
-
 use crate::{
     shared::Hash,
     transactions::{

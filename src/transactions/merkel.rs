@@ -11,10 +11,11 @@ struct MerkelTree {
 }
 //cela limit le nombre maximum de transaction en un coup de 1.048.575 soit 2^BUFFER_SIZE -1
 const BUFFER_SIZE: usize = 20;
+const MAX_TRANSACTION_PER_BLOCK: usize = (1 << BUFFER_SIZE) - 1;
 
 pub fn get_merkel_hash(transactions: &[ValidatedTransaction]) -> Hash {
     assert!(transactions.len() != 0);
-    assert!(transactions.len() < ((1 << BUFFER_SIZE) - 1));
+    assert!(transactions.len() < MAX_TRANSACTION_PER_BLOCK);
 
     let mut merkel_hash_builder = MerkelHashBuilder::new();
     for hash in transactions

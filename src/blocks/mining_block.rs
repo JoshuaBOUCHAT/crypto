@@ -2,7 +2,7 @@ use sha2::{Digest, Sha256};
 
 use crate::{
     block_chain::BlockChain,
-    blocks::{self, block::Block},
+    blocks::block::Block,
     shared::{Hash, count_leading_zeros, get_now_unix},
 };
 

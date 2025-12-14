@@ -1,6 +1,6 @@
 use sha2::{Sha256, digest::Update};
 
-use crate::{shared::Hash, transactions::transaction::SignedTransaction};
+use crate::shared::Hash;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct Input {

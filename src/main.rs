@@ -1,11 +1,6 @@
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
-
 use rand::rngs::OsRng;
-use sha2::{Digest, Sha256};
 
-use crate::{
-    block_chain::BlockChain, shared::Hash, transactions::transaction::ValidatedTransaction,
-};
+use crate::{block_chain::BlockChain, transactions::transaction::ValidatedTransaction};
 
 mod block_chain;
 pub mod blocks;
@@ -13,7 +8,7 @@ mod shared;
 pub mod transactions;
 pub mod utxo_map;
 
-use ed25519_dalek::{SecretKey, Signer, SigningKey, Verifier, VerifyingKey};
+use ed25519_dalek::SigningKey;
 
 fn main() {
     let mut rng = OsRng {};

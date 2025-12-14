@@ -52,7 +52,7 @@ pub struct SignedTransaction {
     signature: Signature,
 }
 impl SignedTransaction {
-    fn data(&self) -> &RawTransaction {
+    pub fn data(&self) -> &RawTransaction {
         &self.raw
     }
 
