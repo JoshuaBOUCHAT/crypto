@@ -19,7 +19,8 @@ fn main() {
     let mut mining_block = block_chain.get_mining_block(&transactions);
     if let Some(mined_block) = mining_block.mine() {
         block_chain.update(mined_block);
-        println!("Trop bien t'es riche")
+        println!("Trop bien t'es riche");
+        println!("Voici le block miné:\n{}", block_chain.peak())
     } else {
         println!("truc")
     }

@@ -18,7 +18,7 @@ impl BlockChain {
     pub fn new() -> Self {
         Self {
             blocks: vec![],
-            difficulty: 20,
+            difficulty: 28,
             version: 0,
             utxos: UTXOMap::new(),
         }

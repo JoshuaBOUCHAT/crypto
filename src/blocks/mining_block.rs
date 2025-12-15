@@ -1,3 +1,6 @@
+use std::{alloc::System, fmt, time::SystemTime};
+
+use base64::{Engine, alphabet::STANDARD, prelude::BASE64_STANDARD};
 use sha2::{Digest, Sha256};
 
 use crate::{
@@ -69,5 +72,20 @@ impl MiningBlock {
             nonce: 0,
             timestamp: get_now_unix(),
         }
+    }
+}
+impl fmt::Display for MiningBlock {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let encoded_hash = BASE64_STANDARD.encode(self.get_previous_hash());
+        let encoded_merkel = BASE64_STANDARD.encode(self.merkel_root);
+        let date = time::OffsetDateTime::from_unix_timestamp(self.timestamp as i64)
+            .unwrap()
+            .date();
+
+        write!(
+            f,
+            "Block:\n version:{}\n previous_hash:{}\n merkel_root:{}\n date:{}\n difficulty:{}\n nonce:{}",
+            self.version, encoded_hash, encoded_merkel, date, self.difficulty, self.nonce
+        )
     }
 }

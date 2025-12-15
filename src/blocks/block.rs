@@ -1,4 +1,6 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::write};
+
+use base64::{Engine, prelude::BASE64_STANDARD};
 
 use crate::{
     block_chain::BlockChain,
@@ -106,4 +108,14 @@ pub enum BlockValidationError {
     WrongHash,
     UTXOSpentMultipleTime,
     TransactionValidationError(TransactionValidationError),
+}
+impl std::fmt::Display for Block {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}\n hash:{}",
+            self.get_mining(),
+            BASE64_STANDARD.encode(&self.hash),
+        )
+    }
 }

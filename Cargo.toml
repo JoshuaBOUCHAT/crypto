@@ -11,3 +11,5 @@ ed25519-dalek = { version = "2.0", default-features = false, features = [
     "fast",
 ] }
 rand = "0.8"
+base64 = "0.22.1"
+time = "0.3.44"
