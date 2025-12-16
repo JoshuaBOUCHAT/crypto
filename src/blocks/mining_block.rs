@@ -1,6 +1,7 @@
-use std::{alloc::System, fmt, time::SystemTime};
+use std::fmt;
 
-use base64::{Engine, alphabet::STANDARD, prelude::BASE64_STANDARD};
+use base64::{Engine, prelude::BASE64_STANDARD};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use sha2::{Digest, Sha256};
 
 use crate::{
@@ -28,8 +29,8 @@ impl MiningBlock {
         hasher.update(&self.difficulty.to_be_bytes());
         hasher.update(&self.previous_hash);
         hasher.update(&self.merkel_root);
-        hasher.update(&self.nonce.to_be_bytes());
         hasher.update(&self.timestamp.to_be_bytes());
+        hasher.update(&self.nonce.to_be_bytes());
 
         hasher.finalize().into()
     }
@@ -63,6 +64,19 @@ impl MiningBlock {
         }
         None
     }
+    pub fn mine_multithread(&self) -> Option<Block> {
+        let result: Option<Block> = (0..u64::MAX).into_par_iter().find_map_any(|i| {
+            let mut cpy = self.clone();
+            cpy.nonce = i;
+            if count_leading_zeros(&cpy.hash()) >= cpy.get_difficulty() {
+                Block::try_new(&cpy)
+            } else {
+                None
+            }
+        });
+        result
+    }
+
     pub fn from_black_chain(chain: &BlockChain, merkel_root: Hash) -> Self {
         Self {
             version: chain.get_version(),

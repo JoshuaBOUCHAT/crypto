@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use rand::rngs::OsRng;
 
 use crate::{block_chain::BlockChain, transactions::transaction::ValidatedTransaction};
@@ -16,10 +18,11 @@ fn main() {
     let mut block_chain = BlockChain::new();
     let coin_base = ValidatedTransaction::get_coin_base(&block_chain, &mut sign_key);
     let transactions = [coin_base];
-    let mut mining_block = block_chain.get_mining_block(&transactions);
-    if let Some(mined_block) = mining_block.mine() {
+    let mining_block = block_chain.get_mining_block(&transactions);
+    let now = Instant::now();
+    if let Some(mined_block) = mining_block.mine_multithread() {
         block_chain.update(mined_block);
-        println!("Trop bien t'es riche");
+        println!("Block miné en {}s", now.elapsed().as_secs_f32());
         println!("Voici le block miné:\n{}", block_chain.peak())
     } else {
         println!("truc")

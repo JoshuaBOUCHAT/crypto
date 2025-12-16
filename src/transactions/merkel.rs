@@ -6,7 +6,7 @@ use sha2::Sha256;
 
 use crate::{shared::Hash, transactions::transaction::ValidatedTransaction};
 
-struct MerkelTree {
+struct _MerkelTree {
     transactions: Vec<ValidatedTransaction>,
 }
 //cela limit le nombre maximum de transaction en un coup de 1.048.575 soit 2^BUFFER_SIZE -1

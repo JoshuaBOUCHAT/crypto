@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::write};
+use std::collections::HashSet;
 
 use base64::{Engine, prelude::BASE64_STANDARD};
 

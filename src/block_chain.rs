@@ -18,7 +18,7 @@ impl BlockChain {
     pub fn new() -> Self {
         Self {
             blocks: vec![],
-            difficulty: 28,
+            difficulty: 33,
             version: 0,
             utxos: UTXOMap::new(),
         }
@@ -27,7 +27,7 @@ impl BlockChain {
         self.blocks.len()
     }
     pub fn peak<'a>(&'a self) -> &'a Block {
-        &self.blocks[0]
+        &self.blocks.last().unwrap()
     }
     pub fn get_coin_base_amount(&self) -> u64 {
         1_000_000
